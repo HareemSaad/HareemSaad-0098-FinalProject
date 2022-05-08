@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <title>replit</title>
+    <link href="style.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <style>
+      body {
+        background-color: rgb(242,242,242);
+      }
+      .show {
+        height: 25vh;
+        width: 100%;
+        background-color: rgb(169,169,169);
+        display: flex;
+      }
+      .gt {
+        background-color: transparent;
+        height: 22vh;
+        border: 1px solid rgb(242,243,244);
+        border-radius: 5px;
+      }
+      #workspace {
+        height: auto;
+        width: 100%;
+      }
+      .workspace {
+        height: 100%;
+        padding: 20px;
+      }
+      #user-side{
+        border-right: 1px solid rgb(169,169,169);
+      }
+      button {
+        border: 1px solid black;
+        padding: 4px 6px 4px 6px;
+        border-radius: 5px;
+        margin-top: 20px;
+      }
+      input {
+        padding: 4px;
+        border-radius: 5px;
+        margin-right: 20px;
+        margin-top: 20px;
+      }
+    </style>
+</head>
+  <body>
+    <div class="show col-12 row justify-content-around" >
+      <div class="col-5 gt align-self-center" id="minted">
+
+      </div>
+      <div class="col-5 gt align-self-center" id="sold">
+
+      </div>
+    </div>
+    <div id="workspace" class="col-12 row align-items-center">
+      <div class="col-6 workspace" id="user-side">
+        <div>          
+          <input type="text" id="sale-price" name="sale-price" placeholder="Sale Price">
+          <button type="button" onclick="alert('calculateRoyaltyInWei')">calculateRoyaltyInWei</button>
+        </div>
+        <div>
+          <input type="text" id="ownes" name="ownes" placeholder="Address">
+          <button type="button" onclick="alert('Ownes')">Ownes</button>
+        </div>
+        <div>
+          <input type="text" id="seeEtherBalance" name="seeEtherBalance" placeholder="Address">
+          <button type="button" onclick="alert('seeEtherBalance')">seeEtherBalance</button>
+        </div>
+        <div>
+          <input type="text" id="getTokenURI" name="getTokenURI" placeholder="Token URI">
+          <button type="button" onclick="alert('tokenURI')">getTokenURI</button>
+        </div>
+        <div>
+          <input type="text" id="buy" name="buy" placeholder="Address Buyer">
+          <input type="text" id="buy" name="buy" placeholder="Token ID">
+          <button type="button" onclick="alert('buy')">buy</button>
+        </div>
+      </div>
+      <div class="col-6 workspace" id="owner-side">
+        <div>
+          <input type="text" id="incTotalSupply" name="incTotalSupply" placeholder="Amount">
+          <button type="button" onclick="alert('incTotalSupply')">incTotalSupply</button>
+        </div>
+        <div>
+          <input type="text" id="mint" name="mint" placeholder="Amount">
+          <button type="button" onclick="alert('mint')">mint</button>
+        </div>
+        <div>
+          <input type="text" id="setRoyaltyInfo" name="setRoyaltyInfo" placeholder="Address Reciever">
+          <input type="text" id="setRoyaltyInfo" name="setRoyaltyInfo" placeholder="Royalty Fee * 100">
+          <button type="button" onclick="alert('setRoyaltyInfo')">setRoyaltyInfo</button>
+        </div>
+        <div>
+          <button type="button" onclick="alert('withdrawAllEther')">withdrawAllEther</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
