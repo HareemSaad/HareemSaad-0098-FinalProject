@@ -4,21 +4,22 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width">
     <title>replit</title>
-    <link href="style.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/web3@latest/dist/web3.min.js/"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.36/dist/web3.min.js" integrity="sha256-nWBTbvxhJgjslRyuAKJHK+XcZPlCnmIAAMixz6EefVk=" crossorigin="anonymous"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
     <style>
       body {
         background-color: rgb(242,242,242);
       }
       .show {
-        height: 25vh;
+        height: 22vh;
         width: 100%;
         background-color: rgb(169,169,169);
         display: flex;
       }
       .gt {
         background-color: transparent;
-        height: 22vh;
+        height: 19vh;
         border: 1px solid rgb(242,243,244);
         border-radius: 5px;
       }
@@ -45,6 +46,17 @@
         margin-right: 20px;
         margin-top: 20px;
       }
+      #output {
+        height: 100px;
+        background-color: #F8F8F8;
+        border: 1px solid gray;
+        border-radius: 5px;
+        color: black;
+        word-wrap: break-word;
+      }
+      .connect {
+        margin: 20px;
+      }
     </style>
 </head>
   <body>
@@ -60,44 +72,162 @@
       <div class="col-6 workspace" id="user-side">
         <div>          
           <input type="text" id="sale-price" name="sale-price" placeholder="Sale Price">
-          <button type="button" onclick="alert('calculateRoyaltyInWei')">calculateRoyaltyInWei</button>
+          <button type="button" onclick="_calculateRoyaltyInWei()">calculateRoyaltyInWei</button>
         </div>
         <div>
-          <input type="text" id="ownes" name="ownes" placeholder="Address">
-          <button type="button" onclick="alert('Ownes')">Ownes</button>
+          <input type="text" id="owner-address" name="owner-address" placeholder="Address">
+          <button type="button" onclick="_ownes()">Ownes</button>
         </div>
         <div>
-          <input type="text" id="seeEtherBalance" name="seeEtherBalance" placeholder="Address">
-          <button type="button" onclick="alert('seeEtherBalance')">seeEtherBalance</button>
+          <input type="text" id="address-eb" name="address-eb" placeholder="Address">
+          <button type="button" onclick="_seeEtherBalance()">seeEtherBalance</button>
         </div>
         <div>
           <input type="text" id="getTokenURI" name="getTokenURI" placeholder="Token URI">
-          <button type="button" onclick="alert('tokenURI')">getTokenURI</button>
+          <button type="button" onclick="_getTokenURI()">getTokenURI</button>
         </div>
         <div>
-          <input type="text" id="buy" name="buy" placeholder="Address Buyer">
-          <input type="text" id="buy" name="buy" placeholder="Token ID">
-          <button type="button" onclick="alert('buy')">buy</button>
+          <input type="text" id="buyer-address" name="buy" placeholder="Address Buyer">
+          <input type="text" id="bought-token" name="buy" placeholder="Token ID">
+          <button type="button" onclick="_buy()">buy</button>
         </div>
       </div>
       <div class="col-6 workspace" id="owner-side">
         <div>
-          <input type="text" id="incTotalSupply" name="incTotalSupply" placeholder="Amount">
-          <button type="button" onclick="alert('incTotalSupply')">incTotalSupply</button>
+          <input type="text" id="incTotalSupply-amount" name="incTotalSupply-amount" placeholder="Amount">
+          <button type="button" onclick="_incTotalSupply()">incTotalSupply</button>
         </div>
         <div>
-          <input type="text" id="mint" name="mint" placeholder="Amount">
-          <button type="button" onclick="alert('mint')">mint</button>
+          <input type="text" id="mint-amount" name="mint" placeholder="Amount">
+          <button type="button" onclick="_mint()">mint</button>
         </div>
         <div>
-          <input type="text" id="setRoyaltyInfo" name="setRoyaltyInfo" placeholder="Address Reciever">
-          <input type="text" id="setRoyaltyInfo" name="setRoyaltyInfo" placeholder="Royalty Fee * 100">
-          <button type="button" onclick="alert('setRoyaltyInfo')">setRoyaltyInfo</button>
+          <input type="text" id="sri-address" name="setRoyaltyInfo" placeholder="Address Reciever">
+          <input type="text" id="sri-fee" name="setRoyaltyInfo" placeholder="Royalty Fee * 100">
+          <button type="button" onclick="_setRoyaltyInfo()">setRoyaltyInfo</button>
         </div>
         <div>
-          <button type="button" onclick="alert('withdrawAllEther')">withdrawAllEther</button>
+          <button type="button" onclick="_withdrawAllEther()">withdrawAllEther</button>
         </div>
       </div>
     </div>
+    <div class="connect row justify-content-around">
+      <button class="col-3" type="button" onclick="connect()">Connect to MetaMask</button>
+    </div>
+    <div id="output-box" class="row align-items-center justify-content-around">
+      <div id="output" class="col-6">
+      </div>
+    </div>
+    <script type="text/javascript">
+      var account = null;
+      var contract = null;
+      const Address = "0x24f7F1b27dc7Ba6c0FA4342C260E0b5Ec9CB41B2";
+      const abi = [{"inputs": [{"internalType": "uint96","name": "_royaltyFeesInHundreds","type": "uint96"},{"internalType": "string","name": "_contractURI","type": "string"}],"stateMutability": "nonpayable","type": "constructor"},{"anonymous": false,"inputs": [{"indexed": true,"internalType": "address","name": "owner","type": "address"},{"indexed": true,"internalType": "address","name": "approved","type": "address"},{"indexed": true,"internalType": "uint256","name": "tokenId","type": "uint256"}],"name": "Approval","type": "event"},{"anonymous": false,"inputs": [{"indexed": true,"internalType": "address","name": "owner","type": "address"},{"indexed": true,"internalType": "address","name": "operator","type": "address"},{"indexed": false,"internalType": "bool","name": "approved","type": "bool"}],"name": "ApprovalForAll","type": "event"},{"inputs": [{"internalType": "address","name": "to","type": "address"},{"internalType": "uint256","name": "tokenId","type": "uint256"}],"name": "approve","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "address","name": "buyer","type": "address"},{"internalType": "uint256","name": "_tokenId","type": "uint256"}],"name": "buy","outputs": [],"stateMutability": "payable","type": "function"},{"inputs": [{"internalType": "uint256","name": "_amount","type": "uint256"}],"name": "incTotalSupply","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "uint256","name": "amount","type": "uint256"}],"name": "mint","outputs": [],"stateMutability": "nonpayable","type": "function"},{"anonymous": false,"inputs": [{"indexed": false,"internalType": "address","name": "","type": "address"},{"indexed": false,"internalType": "uint256","name": "","type": "uint256"}],"name": "Received","type": "event"},{"inputs": [{"internalType": "address","name": "from","type": "address"},{"internalType": "address","name": "to","type": "address"},{"internalType": "uint256","name": "tokenId","type": "uint256"}],"name": "safeTransferFrom","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "address","name": "from","type": "address"},{"internalType": "address","name": "to","type": "address"},{"internalType": "uint256","name": "tokenId","type": "uint256"},{"internalType": "bytes","name": "_data","type": "bytes"}],"name": "safeTransferFrom","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "address","name": "operator","type": "address"},{"internalType": "bool","name": "approved","type": "bool"}],"name": "setApprovalForAll","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "address","name": "_receiver","type": "address"},{"internalType": "uint96","name": "_royaltyFeesInBips","type": "uint96"}],"name": "setRoyaltyInfo","outputs": [],"stateMutability": "nonpayable","type": "function"},{"anonymous": false,"inputs": [{"indexed": true,"internalType": "address","name": "from","type": "address"},{"indexed": true,"internalType": "address","name": "to","type": "address"},{"indexed": true,"internalType": "uint256","name": "tokenId","type": "uint256"}],"name": "Transfer","type": "event"},{"inputs": [{"internalType": "address","name": "from","type": "address"},{"internalType": "address","name": "to","type": "address"},{"internalType": "uint256","name": "tokenId","type": "uint256"}],"name": "transferFrom","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [],"name": "withdrawAllEther","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "address","name": "owner","type": "address"}],"name": "balanceOf","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "uint256","name": "_salePrice","type": "uint256"}],"name": "calculateRoyaltyInWei","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "uint256","name": "tokenId","type": "uint256"}],"name": "getApproved","outputs": [{"internalType": "address","name": "","type": "address"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "owner","type": "address"},{"internalType": "address","name": "operator","type": "address"}],"name": "isApprovedForAll","outputs": [{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "view","type": "function"},{"inputs": [],"name": "name","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "uint256","name": "tokenId","type": "uint256"}],"name": "ownerOf","outputs": [{"internalType": "address","name": "","type": "address"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "_address","type": "address"}],"name": "ownes","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "uint256","name": "_tokenId","type": "uint256"},{"internalType": "uint256","name": "_salePrice","type": "uint256"}],"name": "royaltyInfo","outputs": [{"internalType": "address","name": "","type": "address"},{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "uint256","name": "_salePrice","type": "uint256"}],"name": "royaltyInfo","outputs": [{"internalType": "address","name": "","type": "address"},{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "_address","type": "address"}],"name": "seeEtherBalance","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [],"name": "sold","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "bytes4","name": "interfaceId","type": "bytes4"}],"name": "supportsInterface","outputs": [{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "view","type": "function"},{"inputs": [],"name": "symbol","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "uint256","name": "index","type": "uint256"}],"name": "tokenByIndex","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "owner","type": "address"},{"internalType": "uint256","name": "index","type": "uint256"}],"name": "tokenOfOwnerByIndex","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "uint256","name": "_tokenId","type": "uint256"}],"name": "tokenURI","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [],"name": "totalSupply","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"}];
+      //const abi = [{"inputs": [{"internalType": "uint96","name": "_royaltyFeesInHundreds","type": "uint96"},{"internalType": "string","name": "_contractURI","type": "string"}],"stateMutability": "nonpayable","type": "constructor"},{"anonymous": false,"inputs": [{"indexed": true,"internalType": "address","name": "owner","type": "address"},{"indexed": true,"internalType": "address","name": "approved","type": "address"},{"indexed": true,"internalType": "uint256","name": "tokenId","type": "uint256"}],"name": "Approval","type": "event"},{"anonymous": false,"inputs": [{"indexed": true,"internalType": "address","name": "owner","type": "address"},{"indexed": true,"internalType": "address","name": "operator","type": "address"},{"indexed": false,"internalType": "bool","name": "approved","type": "bool"}],"name": "ApprovalForAll","type": "event"},{"inputs": [{"internalType": "address","name": "to","type": "address"},{"internalType": "uint256","name": "tokenId","type": "uint256"}],"name": "approve","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "address","name": "buyer","type": "address"},{"internalType": "uint256","name": "_tokenId","type": "uint256"}],"name": "buy","outputs": [],"stateMutability": "payable","type": "function"},{"inputs": [{"internalType": "uint256","name": "_amount","type": "uint256"}],"name": "incTotalSupply","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "uint256","name": "amount","type": "uint256"}],"name": "mint","outputs": [],"stateMutability": "nonpayable","type": "function"},{"anonymous": false,"inputs": [{"indexed": false,"internalType": "address","name": "","type": "address"},{"indexed": false,"internalType": "uint256","name": "","type": "uint256"}],"name": "Received","type": "event"},{"inputs": [{"internalType": "address","name": "from","type": "address"},{"internalType": "address","name": "to","type": "address"},{"internalType": "uint256","name": "tokenId","type": "uint256"}],"name": "safeTransferFrom","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "address","name": "from","type": "address"},{"internalType": "address","name": "to","type": "address"},{"internalType": "uint256","name": "tokenId","type": "uint256"},{"internalType": "bytes","name": "_data","type": "bytes"}],"name": "safeTransferFrom","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "address","name": "operator","type": "address"},{"internalType": "bool","name": "approved","type": "bool"}],"name": "setApprovalForAll","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "address","name": "_receiver","type": "address"},{"internalType": "uint96","name": "_royaltyFeesInBips","type": "uint96"}],"name": "setRoyaltyInfo","outputs": [],"stateMutability": "nonpayable","type": "function"},{"anonymous": false,"inputs": [{"indexed": true,"internalType": "address","name": "from","type": "address"},{"indexed": true,"internalType": "address","name": "to","type": "address"},{"indexed": true,"internalType": "uint256","name": "tokenId","type": "uint256"}],"name": "Transfer","type": "event"},{"inputs": [{"internalType": "address","name": "from","type": "address"},{"internalType": "address","name": "to","type": "address"},{"internalType": "uint256","name": "tokenId","type": "uint256"}],"name": "transferFrom","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [],"name": "withdrawAllEther","outputs": [],"stateMutability": "nonpayable","type": "function"},{"inputs": [{"internalType": "address","name": "owner","type": "address"}],"name": "balanceOf","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "uint256","name": "_salePrice","type": "uint256"}],"name": "calculateRoyaltyInWei","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "uint256","name": "tokenId","type": "uint256"}],"name": "getApproved","outputs": [{"internalType": "address","name": "","type": "address"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "owner","type": "address"},{"internalType": "address","name": "operator","type": "address"}],"name": "isApprovedForAll","outputs": [{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "view","type": "function"},{"inputs": [],"name": "name","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "uint256","name": "tokenId","type": "uint256"}],"name": "ownerOf","outputs": [{"internalType": "address","name": "","type": "address"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "_address","type": "address"}],"name": "ownes","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "uint256","name": "_tokenId","type": "uint256"},{"internalType": "uint256","name": "_salePrice","type": "uint256"}],"name": "royaltyInfo","outputs": [{"internalType": "address","name": "","type": "address"},{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "uint256","name": "_salePrice","type": "uint256"}],"name": "royaltyInfo","outputs": [{"internalType": "address","name": "","type": "address"},{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "_address","type": "address"}],"name": "seeEtherBalance","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [],"name": "sold","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "bytes4","name": "interfaceId","type": "bytes4"}],"name": "supportsInterface","outputs": [{"internalType": "bool","name": "","type": "bool"}],"stateMutability": "view","type": "function"},{"inputs": [],"name": "symbol","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "uint256","name": "index","type": "uint256"}],"name": "tokenByIndex","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "address","name": "owner","type": "address"},{"internalType": "uint256","name": "index","type": "uint256"}],"name": "tokenOfOwnerByIndex","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"},{"inputs": [{"internalType": "uint256","name": "_tokenId","type": "uint256"}],"name": "tokenURI","outputs": [{"internalType": "string","name": "","type": "string"}],"stateMutability": "view","type": "function"},{"inputs": [],"name": "totalSupply","outputs": [{"internalType": "uint256","name": "","type": "uint256"}],"stateMutability": "view","type": "function"}];   
+      
+      (async () => {
+        if (window.ethereum) {
+          await window.ethereum.request({method: 'eth_requestAccounts'});
+          window.web3 = new Web3(window.ethereum);
+
+          var accounts = await web3.eth.getAccounts();
+          account = accounts[0];
+          document.getElementById('output').innerHTML = account;
+
+          contract = new web3.eth.Contract(abi, Address);
+        }
+      })();
+
+      const connect = async () => {
+        if (window.ethereum) {
+          await window.ethereum.request({method: 'eth_requestAccounts'});
+          window.web3 = new Web3(window.ethereum);
+
+          var accounts = await web3.eth.getAccounts();
+          account = accounts[0];
+          document.getElementById('output').innerHTML = account;
+
+          contract = new web3.eth.Contract(abi, Address);
+        }
+      };
+
+      const deploy = async (abi, bytecode) => {
+        var deployingContract = new web3.eth.Contract(abi).deploy({
+        data: bytecode,
+        arguments: []
+        });
+        var estimatedGas = await deployingContract.estimateGas();
+
+        var deployedContract = await deployingContract.send({
+        from: account,
+        gas: estimatedGas
+        })
+        console.log('Address of Contract - ' + deployedContract.options.address);
+        return deployedContract.options.address;
+      }
+    
+      const _calculateRoyaltyInWei = async () => {
+        // document.getElementById("resultDiv").innerHTML = total.toString();
+        if(contract) {
+          var x = await contract.methods.calculateRoyaltyInWei([document.getElementById('sale-price').value]).call();
+          document.getElementById('output').innerHTML = x;
+        }
+      }
+
+      const _getTokenURI = async () => {
+        if(contract) {
+          var x = await contract.methods.tokenURI([document.getElementById('getTokenURI').value]).call();
+          document.getElementById('output').innerHTML = x;
+        }
+      }
+
+      const _ownes = async () => {
+        if(contract) {
+          // var y = "0xf4e0C1ec8CffF574cEB903e1Bb64D43151e3F59D";
+          var x = await contract.methods.ownes(document.getElementById('owner-address').value).call();
+          document.getElementById('output').innerHTML = x;
+        }
+      }
+
+      const _seeEtherBalance = async () => {
+        if(contract) {
+          var x = await contract.methods.seeEtherBalance(document.getElementById('address-eb').value).call();
+          document.getElementById('output').innerHTML = x;
+        }
+      }
+      
+      function _buy() {
+        contract.methods.buy(document.getElementById('buyer-address').value, [document.getElementById('bought-token').value]).send({from: account, value: 0.01 * 10 ** 18});
+        document.getElementById('output').innerHTML = "x";
+      }
+      
+      const _withdrawAllEther = async () => {
+        if(contract) {
+          await contract.methods.withdrawAllEther().call();
+          document.getElementById('output').innerHTML = "Amount withdrawn, check your wallet!";
+        }
+      }
+      
+      const _setRoyaltyInfo = async () => {
+        if(contract) {
+          await contract.methods.setRoyaltyInfo(document.getElementById('sri-address').value, [document.getElementById('sri-fee').value]).call();
+          document.getElementById('output').innerHTML = "Info set!";
+        }
+      }
+      
+      const _mint = async () => {
+        if(contract) {
+          await contract.methods.mint(document.getElementById('mint-amount').value).call();
+          document.getElementById('output').innerHTML = "minted!";
+        }
+      }
+      
+      const _incTotalSupply = async () => {
+        if(contract) {
+          await contract.methods.incTotalSupply(document.getElementById('incTotalSupply-amount').value).call();
+          document.getElementById('output').innerHTML = "total supply increased!";
+        }
+      }
+    </script>
   </body>
 </html>
