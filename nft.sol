@@ -8,20 +8,20 @@ import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contr
 import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/common/ERC2981.sol';
 
 contract NFT is ERC721, ERC721Enumerable, ERC2981 {
-    uint private minted = 0;    //count of nfts minted by the owner
-    uint private total_supply;  //total amount of nfts present - includes non minted nfts
+    uint public minted = 0;    //count of nfts minted by the owner
+    uint public total_supply;  //total amount of nfts present - includes non minted nfts
     uint public sold = 0;       //nfts sold
     string contractURI;         
     uint royaltyFee;            //royalty fee multiplied by 100 so 2.5% is 250
     mapping(address => uint) nfts; //stores the token number with it's owner address
     address developer = 0xdD870fA1b7C4700F2BD7f44238821C26f7392148; //person to which royalty goes to
     address owner;              //deployer of contract
-    uint ether_price = 1 ether;
+    uint ether_price = 0.01 ether;
     string private TokenURI = "https://gateway.pinata.cloud/ipfs/QmWmkFRK4qfA69iq8oeUbdzeoa3essYH4GobAXwHN26zqS";
 
-    constructor(uint96 _royaltyFeesInHundreds, string memory _contractURI) ERC721("Box Box Go", "BBG") {
+    constructor(uint96 _royaltyFeesInHundreds, string memory _contractURI, uint _total_supply) ERC721("Box Box Go-", "BBG") {
         owner = msg.sender; //set developer
-        total_supply = 20;
+        total_supply = _total_supply;
         setRoyaltyInfo(msg.sender, _royaltyFeesInHundreds);
         contractURI = _contractURI;
         royaltyFee = _royaltyFeesInHundreds;
@@ -60,6 +60,7 @@ contract NFT is ERC721, ERC721Enumerable, ERC2981 {
         payable(developer).transfer(ether_price / 100); //send "royalty" to developer on primary sale
         sold += 1;
         nfts[msg.sender] = _tokenId; //sets which address owns which nft
+        _transfer(owner, msg.sender, _tokenId);
     }
 
     //tells which address owns which nft
@@ -107,3 +108,4 @@ contract NFT is ERC721, ERC721Enumerable, ERC2981 {
     }
 }
 //https://www.npoint.io/docs/27f8ee01e168cb99bcc9
+//0x995b2001821F6ab5C7638B9869ca7B9Ab4921ffB
