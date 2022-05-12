@@ -11,15 +11,14 @@ contract NFT is ERC721, ERC721Enumerable, ERC2981 {
     uint public minted = 0;    //count of nfts minted by the owner
     uint public total_supply;  //total amount of nfts present - includes non minted nfts
     uint public sold = 0;       //nfts sold
-    string contractURI;         
+    string public contractURI;         
     uint royaltyFee;            //royalty fee multiplied by 100 so 2.5% is 250
     mapping(address => uint) nfts; //stores the token number with it's owner address
-    address developer = 0xdD870fA1b7C4700F2BD7f44238821C26f7392148; //person to which royalty goes to
-    address owner;              //deployer of contract
-    uint ether_price = 0.01 ether;
+    address owner;              //person to which royalty goes to and deployer of contract
+    uint public ether_price = 0.01 ether;
     string private TokenURI = "https://gateway.pinata.cloud/ipfs/QmWmkFRK4qfA69iq8oeUbdzeoa3essYH4GobAXwHN26zqS";
 
-    constructor(uint96 _royaltyFeesInHundreds, string memory _contractURI, uint _total_supply) ERC721("Box Box Go-", "BBG") {
+    constructor(uint96 _royaltyFeesInHundreds, string memory _contractURI, uint _total_supply) ERC721("Box Box Go--", "BBG-") {
         owner = msg.sender; //set developer
         total_supply = _total_supply;
         setRoyaltyInfo(msg.sender, _royaltyFeesInHundreds);
@@ -51,16 +50,37 @@ contract NFT is ERC721, ERC721Enumerable, ERC2981 {
 
     //user buys the nfts that owner has already minted
     //users cannot buy more than nft on primary sale
-    function buy(address buyer, uint _tokenId) public payable{
-        require(minted >= _tokenId, "nft not minted yet"); 
+    function buy(address buyer) public payable{
+        require(minted >= sold, "sold out!"); 
         require(minted <= total_supply, "out of stock");
         require(nfts[msg.sender] < 1, "cannot buy more than one nft");
         require(msg.value == ether_price, "Wrong amount of ether");
         emit Received(buyer, msg.value);
-        payable(developer).transfer(ether_price / 100); //send "royalty" to developer on primary sale
+        payable(owner).transfer(ether_price / 100); //send "royalty" to developer on primary sale
         sold += 1;
-        nfts[msg.sender] = _tokenId; //sets which address owns which nft
-        _transfer(owner, msg.sender, _tokenId);
+        nfts[msg.sender] = sold; //sets which address owns which nft
+        _transfer(owner, msg.sender, sold);
+    }
+
+    function setPrice(uint _newPrice) public {
+        require(msg.sender == owner, "you are not authorized to call this function");
+        require(_newPrice > 0, "price has to be non-negative and non zero");
+        ether_price = _newPrice;
+    }
+
+    function setOwner(address _newOwner) public {
+        require(msg.sender == owner, "you are not authorized to call this function");
+        owner = _newOwner;
+    }
+
+    function setContractURI(string memory _newContractURI) public {
+        require(msg.sender == owner, "you are not authorized to call this function");
+        contractURI = _newContractURI;
+    }
+
+    function setTokenURI(string memory _newTokenURI) public {
+        require(msg.sender == owner, "you are not authorized to call this function");
+        TokenURI = _newTokenURI;
     }
 
     //tells which address owns which nft
@@ -100,7 +120,7 @@ contract NFT is ERC721, ERC721Enumerable, ERC2981 {
     // }
 
     function royaltyInfo(uint256 _salePrice) external view virtual returns (address, uint256) {
-        return (developer, calculateRoyaltyInWei(_salePrice));
+        return (owner, calculateRoyaltyInWei(_salePrice));
     }
 
     function calculateRoyaltyInWei(uint256 _salePrice) view public returns (uint256) {
@@ -108,4 +128,4 @@ contract NFT is ERC721, ERC721Enumerable, ERC2981 {
     }
 }
 //https://www.npoint.io/docs/27f8ee01e168cb99bcc9
-//0x995b2001821F6ab5C7638B9869ca7B9Ab4921ffB
+//0xF79c4dD9B19A88139925720ED25D35814d02d827
