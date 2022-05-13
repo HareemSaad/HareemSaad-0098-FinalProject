@@ -6,20 +6,21 @@ import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contr
 import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
 import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/utils/Strings.sol';
 import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/common/ERC2981.sol';
+import 'https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/access/Ownable.sol';
 
-contract NFT is ERC721, ERC721Enumerable, ERC2981 {
+contract NFT is ERC721, ERC721Enumerable, ERC2981, Ownable {
     uint public minted = 0;    //count of nfts minted by the owner
     uint public total_supply;  //total amount of nfts present - includes non minted nfts
     uint public sold = 0;       //nfts sold
     string public contractURI;         
     uint royaltyFee;            //royalty fee multiplied by 100 so 2.5% is 250
     mapping(address => uint) nfts; //stores the token number with it's owner address
-    address owner;              //person to which royalty goes to and deployer of contract
+    address receiver;              //person to which royalty goes to and deployer of contract
     uint public ether_price = 0.01 ether;
     string private TokenURI = "https://gateway.pinata.cloud/ipfs/QmWmkFRK4qfA69iq8oeUbdzeoa3essYH4GobAXwHN26zqS";
 
-    constructor(uint96 _royaltyFeesInHundreds, string memory _contractURI, uint _total_supply) ERC721("Box Box Go--", "BBG-") {
-        owner = msg.sender; //set developer
+    constructor(uint96 _royaltyFeesInHundreds, string memory _contractURI, uint _total_supply) ERC721("Boxes", "BOX") {
+        receiver = msg.sender; //set developer
         total_supply = _total_supply;
         setRoyaltyInfo(msg.sender, _royaltyFeesInHundreds);
         contractURI = _contractURI;
@@ -27,16 +28,14 @@ contract NFT is ERC721, ERC721Enumerable, ERC2981 {
     }
 
     //increase total supply
-    function incTotalSupply(uint _amount) public{
-        require(msg.sender == owner, "you are not authorized to call this function");
+    function incTotalSupply(uint _amount) public onlyOwner{
         total_supply += _amount;
     }
 
     event Received(address, uint);
 
     //owner mints some amoount of nfts
-    function mint (uint amount) public {
-        require(msg.sender == owner, "you are not authorized to call this function");
+    function mint (uint amount) public onlyOwner{
         require(minted+amount <= total_supply, "tokens exceed limit");
         uint _tokenId = minted; //so next minted nft's ID starts right after the previous one
         while (minted < total_supply && amount!=0) {
@@ -50,36 +49,32 @@ contract NFT is ERC721, ERC721Enumerable, ERC2981 {
 
     //user buys the nfts that owner has already minted
     //users cannot buy more than nft on primary sale
-    function buy(address buyer) public payable{
+    function buy() public payable{
         require(minted >= sold, "sold out!"); 
         require(minted <= total_supply, "out of stock");
         require(nfts[msg.sender] < 1, "cannot buy more than one nft");
         require(msg.value == ether_price, "Wrong amount of ether");
-        emit Received(buyer, msg.value);
-        payable(owner).transfer(ether_price / 100); //send "royalty" to developer on primary sale
+        emit Received(msg.sender, msg.value);
+        payable(receiver).transfer(ether_price / 100); //send "royalty" to developer on primary sale
         sold += 1;
         nfts[msg.sender] = sold; //sets which address owns which nft
-        _transfer(owner, msg.sender, sold);
-    }
+        _transfer(receiver, msg.sender, sold);
+    }    
 
-    function setPrice(uint _newPrice) public {
-        require(msg.sender == owner, "you are not authorized to call this function");
+    function setPrice(uint _newPrice) public onlyOwner{
         require(_newPrice > 0, "price has to be non-negative and non zero");
         ether_price = _newPrice;
     }
 
-    function setOwner(address _newOwner) public {
-        require(msg.sender == owner, "you are not authorized to call this function");
-        owner = _newOwner;
+    function setOwner(address _newOwner) public onlyOwner{
+        receiver = _newOwner;
     }
 
-    function setContractURI(string memory _newContractURI) public {
-        require(msg.sender == owner, "you are not authorized to call this function");
+    function setContractURI(string memory _newContractURI) public onlyOwner{
         contractURI = _newContractURI;
     }
 
-    function setTokenURI(string memory _newTokenURI) public {
-        require(msg.sender == owner, "you are not authorized to call this function");
+    function setTokenURI(string memory _newTokenURI) public onlyOwner{
         TokenURI = _newTokenURI;
     }
 
@@ -92,15 +87,13 @@ contract NFT is ERC721, ERC721Enumerable, ERC2981 {
         return _address.balance;
     }
 
-    function setRoyaltyInfo(address _receiver, uint96 _royaltyFeesInBips) public {
-        require(msg.sender == owner, "you are not authorized to call this function");
+    function setRoyaltyInfo(address _receiver, uint96 _royaltyFeesInBips) public onlyOwner{
         _setDefaultRoyalty(_receiver, _royaltyFeesInBips);
     }
 
     //so owner can withdraw ether from contract
-    function withdrawAllEther() public {
-        require(msg.sender == owner, "you are not authorized to call this function");
-        payable(owner).transfer(address(this).balance);
+    function withdrawAllEther() public onlyOwner{
+        payable(receiver).transfer(address(this).balance);
     }
 
     function tokenURI(uint _tokenId) public view override returns (string memory) {
@@ -120,7 +113,7 @@ contract NFT is ERC721, ERC721Enumerable, ERC2981 {
     // }
 
     function royaltyInfo(uint256 _salePrice) external view virtual returns (address, uint256) {
-        return (owner, calculateRoyaltyInWei(_salePrice));
+        return (receiver, calculateRoyaltyInWei(_salePrice));
     }
 
     function calculateRoyaltyInWei(uint256 _salePrice) view public returns (uint256) {
@@ -128,4 +121,3 @@ contract NFT is ERC721, ERC721Enumerable, ERC2981 {
     }
 }
 //https://www.npoint.io/docs/27f8ee01e168cb99bcc9
-//0xF79c4dD9B19A88139925720ED25D35814d02d827
