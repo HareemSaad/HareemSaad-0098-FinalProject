@@ -11,3 +11,5 @@ Contract id deployed here: 0xa8b3EBD27be930E6F23ec59B6386d7ad0aaE2C7d (rinkeby t
 3- when you change accounts make sure to click connect to meta mask button to reconnent to that account
   
 4- user can only BUY nfts, once your transaction is confirmed go onto opensea testnet to view it!
+
+5- <b>Customers can only buy ONE nft</b>
