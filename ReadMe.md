@@ -4,7 +4,7 @@ Contract id deployed here: 0xa8b3EBD27be930E6F23ec59B6386d7ad0aaE2C7d (rinkeby t
 
 <b>Important</b>
 
-1- Once you open the website make sure to <b>disable ALL extensions except metamask - or website will not work</b>
+1- Once you open the website make sure to <b>disable ALL extensions except metamask ESPECIALLY ADBLOCK- or website will not work</b> 
 
 2- connect with metamask
 
