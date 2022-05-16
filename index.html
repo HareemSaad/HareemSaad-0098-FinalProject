@@ -76,6 +76,9 @@
       .connect {
         margin: 20px;
       }
+      .i{
+        color: gray;
+      }
     </style>
 </head>
   <body>
@@ -89,6 +92,7 @@
     </div>
     <div id="workspace" class="col-12 row align-items-center">
       <div class="col-6 workspace" id="user-side">
+        <h4 class="i"><i>///user side///</i></h4>
         <div>          
           <input type="text" id="sale-price" name="sale-price" placeholder="Sale Price">
           <button type="button" onclick="_calculateRoyaltyInWei()">calculateRoyaltyInWei</button>
@@ -106,6 +110,7 @@
         </div>
       </div>
       <div class="col-6 workspace" id="owner-side">
+        <h4 class="i"><i>///owner side///</i></h4>
         <div>
           <input type="text" id="incTotalSupply-amount" name="incTotalSupply-amount" placeholder="Amount">
           <button type="button" onclick="_incTotalSupply()">incTotalSupply</button>
